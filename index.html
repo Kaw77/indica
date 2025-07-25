@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Desbloqueie seu E-mail Brinde</title>
+  <style>
+    body { font-family: Arial; background: #f2f2f2; padding: 40px; text-align: center; }
+    .container { background: white; padding: 30px; max-width: 400px; margin: auto; border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+    input, button { width: 80%; padding: 10px; margin-top: 10px; border-radius: 6px; border: 1px solid #ccc; }
+    ul { text-align: left; padding-left: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Indique 5 celulares e ganhe um brinde!</h2>
+    <input type="email" id="email" placeholder="Seu e-mail" required>
+    <input type="tel" id="telefone" placeholder="(00) 00000-0000" maxlength="15">
+    <br>
+    <button onclick="adicionarTelefone()">Indicar</button>
+    <ul id="lista"></ul>
+    <div id="status" style="margin-top: 20px; font-weight: bold;"></div>
+  </div>
+
+  <script>
+    const telefones = [];
+    const lista = document.getElementById('lista');
+    const status = document.getElementById('status');
+
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwXljgIerHx69ZJlMSH8J5O4CfG-W_Hh5IzVBEjMN9IAL5LPzFHiSgbudvy3L1EbdRH7g/exec"; // <-- Cole aqui a URL do GAS
+
+    function adicionarTelefone() {
+      const telefone = document.getElementById('telefone').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const regexTel = /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/;
+      const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!regexEmail.test(email)) {
+        alert("Digite um e-mail válido.");
+        return;
+      }
+
+      if (!regexTel.test(telefone)) {
+        alert("Número inválido.");
+        return;
+      }
+
+      if (telefones.includes(telefone)) {
+        alert("Número já foi indicado.");
+        return;
+      }
+
+      telefones.push(telefone);
+      atualizarLista();
+      document.getElementById('telefone').value = '';
+
+      if (telefones.length === 5) {
+        enviarParaGAS(email);
+      }
+    }
+
+    function atualizarLista() {
+      lista.innerHTML = '';
+      telefones.forEach((tel, i) => {
+        const item = document.createElement('li');
+        item.textContent = `${i + 1}. ${tel}`;
+        lista.appendChild(item);
+      });
+    }
+
+    function enviarParaGAS(email) {
+      status.innerText = "Enviando e-mail do brinde...";
+
+      fetch(scriptURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, celulares: telefones })
+      })
+      .then(res => res.text())
+      .then(msg => {
+        status.innerText = "🎁 Brinde enviado para " + email;
+      })
+      .catch(err => {
+        console.error(err);
+        status.innerText = "Erro ao enviar o brinde.";
+      });
+    }
+  </script>
+</body>
+</html>
